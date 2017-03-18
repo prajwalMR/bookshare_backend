@@ -51,7 +51,7 @@ var auth = {
 		place : req.place,
 		isStudent : req.category.isStudent,
 		category : category,
-		intersets : req.category.intersets,
+		interests : req.category.interests,
 		salt : salt,
 		hash : hash
 	// callback function that fiers after the batabase operations are completed
