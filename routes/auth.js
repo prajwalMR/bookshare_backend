@@ -32,12 +32,26 @@ var auth = {
 	collection = mongo.collection('users');
 	req = request.body;
 	salt = magic(160, 36);
-	hash = sha1( req.pass + salt ),
+	hash = sha1( req.pass + salt );
+	isStudent = req.category.isStudent;
+	category = {};
+	if(isStudent){
+		category.college = req.category.college;
+		category.branch = req.category.branch;
+		category.sem = req.category.sem;
+	}
+	else{
+		category.job = req.category.job;
+	}
 	collection.insert({
 		_id : req.email,
 		name : req.name,
 		email : req.email,
 		phoneNum : req.phoneNum,
+		place : req.place,
+		isStudent : req.category.isStudent,
+		category : category,
+		intersets : req.category.intersets,
 		salt : salt,
 		hash : hash
 	// callback function that fiers after the batabase operations are completed

@@ -25,7 +25,7 @@ MongoClient.connect(url, function(err, database) {
 });
 
 var routes = require('./routes/index');
-var users = require('./routes/users');
+// var users = require('./routes/users');
 
 var app = express();
 
@@ -50,7 +50,7 @@ app.use(function (req, res, next) {
 });
 
 app.use('/', routes);
-app.use('/users', users);
+// app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -83,7 +83,7 @@ app.use(function(err, req, res, next) {
   });
 });
 
-var nodemailer = require('nodemailer')
+// var nodemailer = require('nodemailer')
 host = 'https://754d9269.ngrok.io';
 app.post('/sendresetlink',function(req,res){
 // recording time
