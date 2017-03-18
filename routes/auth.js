@@ -104,9 +104,10 @@ var auth = {
 	});
 	},
 
-	resetPass: function(request,response){
+  sendmail: function(request,response){
   mongo = request.db;
   collection = mongo.collection("users");
+  // accepting data from frontend
   var recvData = request.body;
   var data = {};
   data.email = recvData.email;
@@ -128,7 +129,7 @@ var auth = {
       subject: 'CHANGE PASSWORD', // Subject line
       text: 'Hello', // plaintext body
       // add url here along with encode email
-      html: '<p><a href='+host+'/sendresetlink/'+encodedEmail+'>CLICK HERE TO RESET PASSWORD</a></p>' // html body
+      html: '<p><a href='+host+'/'+encodedEmail+'>CLICK HERE TO RESET PASSWORD</a></p>' // html body
   };
   console.log(mailOptions);
   // send mail
@@ -147,7 +148,7 @@ var auth = {
 	collection.update({'email':''+data.email},{$set:{'stime':''+sentTime}},function(err,result){
 			if(!err && result){
 				response.send({
-					"status":"success",
+					"status":"Success",
 					"data":result
 				})
 			}
@@ -168,33 +169,47 @@ var auth = {
 	})
 	},
 
-	validatetoresetpass : function(request,response){
-    var date = new Date()
-  	var recvTime = date.getTime() / 1000 ;       // gives epoch time in seconds
-    //var endTime = recvTime.split(':')
-    console.log(recvTime)
-    validityTime = 300.000;
+	resetpass : function(request,response){
+    // accepting data from frontend
+    var recvData = request.body;
+    var data = {};
+    data.email = recvData.email;
+    data.pass = recvData.pass;
+    // querying the user's salt
+    collection.findOne({ 'email' : data.email} , function(err , result){
+  		console.log(result , "\n");
+  		if(!err && result){
+  			salt = result.salt;
+  			console.log(salt);
+  			}
+    });
+    // changing the hash
+  	hash = sha1( data.pass + salt )
 		mongo = request.db;
-    collection = mongo.collection("users")
-    // base64 to ascii
-    var email = new Buffer(encodedemail,'base64').toString('ascii')
-    collection.findOne({'email':email},function(err,result){
-      if(!err && result){
-        var startTime = result.stime
-        if(recvTime - startTime <= validityTime){
-          response.send({
-            "status":"success",
-            "data":result
-          })
-        }
-        else{
-          response.send({
-            "status":"failed",
-            "data":"timeout"
-          })
-        }
-      }
-    })
+    collection = mongo.collection("users");
+    // changing the user's hash
+    collection.update({'email':''+data.email},{$set:{'hash':''+hash}},function(err,result){
+  			if(!err && result){
+  				response.send({
+  					"status":"Success",
+  					"data":result
+  				})
+  			}
+  			else{
+  				if(!err && !result){
+  					response.send({
+  					"status":"failed",
+  					"data":"not found"
+  					})
+  				}
+  				else{
+  					response.send({
+  					"status":"failed",
+  					"data":err
+  					})
+  				}
+  			}
+  	})
 
 	}
 };
