@@ -9,8 +9,12 @@ var host = 'http://localhost:8000/app/#/resetpsswd';
 
 var auth = {
     authenticate: function (req,res) {
+      
+      usrname = new Buffer(req.body.userName , 'base64').toString('ascii') ;
+      passwd = new Buffer(req.body.password , 'base64').toString('ascii');
+
         var collection = req.db.collection('adminDetails');
-        collection.findOne({username:req.body.userName,password:req.body.password},function (err,data) {
+        collection.findOne({username:usrname , password:passwd },function (err,data) {
             if(!err && data){
                 var  token = jwt.sign({username:req.body.userName},secret.secret,{ expiresIn: 36000 });
                 res.send({
