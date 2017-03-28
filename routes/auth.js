@@ -5,108 +5,109 @@ var magic = require('csprng');
 var secret = require('../secret');
 var nodemailer = require('nodemailer')
 var smtpTransport = require('nodemailer-smtp-transport');
-var host = 'https://754d9269.ngrok.io';
+var host = 'http://localhost:8000/app/#/resetpsswd';
 
 var auth = {
-    // authenticate: function (req,res) {
-    //     var collection = req.db.collection('adminDetails');
-    //     collection.findOne({username:req.body.userName,password:req.body.password},function (err,data) {
-    //         if(!err && data){
-    //             var  token = jwt.sign({username:req.body.userName},secret.secret,{ expiresIn: 36000 });
-    //             res.send({
-    //                 "msg": "Authentication Succesfull",
-    //                 "token": token,
-    //                 "expiresAt" : Math.floor(Date.now()/1000) + 35000
-    //             });
-    //         }
-    //         else if(data==null){
-    //             res.send({
-    //                 "msg": "Authentication Failed, User Not Found"
-    //             });
-    //         }
-    //     });
-    //  }
+    authenticate: function (req,res) {
+        var collection = req.db.collection('adminDetails');
+        collection.findOne({username:req.body.userName,password:req.body.password},function (err,data) {
+            if(!err && data){
+                var  token = jwt.sign({username:req.body.userName},secret.secret,{ expiresIn: 36000 });
+                res.send({
+                    "msg": "Authentication Succesfull",
+                    "token": token,
+                    "expiresAt" : Math.floor(Date.now()/1000) + 35000
+                });
+            }
+            else if(data==null){
+                res.send({
+                    "msg": "Authentication Failed, User Not Found"
+                });
+            }
+        });
+     },
     signup : function(request , response){
     console.log(request.body);
-	mongo = request.db;
-	collection = mongo.collection('users');
-	req = request.body;
-	salt = magic(160, 36);
-	hash = sha1( req.pass + salt );
-	isStudent = req.category.isStudent;
-	category = {};
-	if(isStudent){
-		category.college = req.category.college;
-		category.branch = req.category.branch;
-		category.sem = req.category.sem;
-	}
-	else{
-		category.job = req.category.job;
-	}
-	collection.insert({
-		_id : req.email,
-		name : req.name,
-		email : req.email,
-		phoneNum : req.phoneNum,
-		place : req.place,
-		isStudent : req.category.isStudent,
-		category : category,
-		interests : req.interests,
-		salt : salt,
-		hash : hash
-	// callback function that fiers after the batabase operations are completed
-	} , function(err){
-		if(!err){
-			response.send({
-				"status" : "Success"
-			})
-		}
-		else{
-			response.send({
-				"status" : err
-			})
-		}
-	});
-	},
+  mongo = request.db;
+  collection = mongo.collection('users');
+  req = request.body;
+  salt = magic(160, 36);
+  hash = sha1( req.pass + salt );
+  isStudent = req.category.isStudent;
+  category = {};
+  if(isStudent){
+    category.college = req.category.college;
+    category.branch = req.category.branch;
+    category.sem = req.category.sem;
+  }
+  else{
+    category.job = req.category.job;
+  }
+  collection.insert({
+    _id : req.email,
+    name : req.name,
+    email : req.email,
+    phoneNum : req.phoneNum,
+    place : req.place,
+    isStudent : req.category.isStudent,
+    category : category,
+    interests : req.interests,
+    salt : salt,
+    hash : hash
+  // callback function that fiers after the batabase operations are completed
+  } , function(err){
+    if(!err){
+      response.send({
+        "status" : "Success"
+      })
+    }
+    else{
+      response.send({
+        "status" : err
+      })
+    }
+  });
+  },
 
-	signin : function(request , response){
-	mongo = request.db;
-	req = request.body;
-	email = req.email;
-	pass = req.pass;
-	collection = mongo.collection('users');
-	collection.findOne({ 'email' : email} , function(err , result){
-		console.log(result , "\n");
-		if(!err && result){
-			salt = result.salt;
-			hash = result.hash;
-			authHash = sha1(pass + salt);
-			console.log(authHash);
-			if(hash == authHash){
-				response.send({
-					"status" : "Success",
-					"data": result
-				})
-			}
-			else{
-				response.send({
-					"status" : "failed",
-					"data":result
-				})
-			}
-		}
-		else{
-			response.send({
-				"status":"error",
-				"msg":err
-			});
-		}
-	});
-	},
+  signin : function(request , response){
+  mongo = request.db;
+  req = request.body;
+  email = req.email;
+  pass = req.pass;
+  collection = mongo.collection('users');
+  collection.findOne({ 'email' : email} , function(err , result){
+    console.log(result , "\n");
+    if(!err && result){
+      salt = result.salt;
+      hash = result.hash;
+      authHash = sha1(pass + salt);
+      console.log(authHash);
+      if(hash == authHash){
+        response.send({
+          "status" : "Success",
+          "data": result
+        })
+      }
+      else{
+        response.send({
+          "status" : "failed",
+          "data":result
+        })
+      }
+    }
+    else{
+      response.send({
+        "status":"error",
+        "msg":err
+      });
+    }
+  });
+  },
 
-	resetPass: function(request,response){
+  sendmail: function(request,response){
   mongo = request.db;
   collection = mongo.collection("users");
+  // accepting data from frontend
   var recvData = request.body;
   var data = {};
   data.email = recvData.email;
@@ -128,7 +129,7 @@ var auth = {
       subject: 'CHANGE PASSWORD', // Subject line
       text: 'Hello', // plaintext body
       // add url here along with encode email
-      html: '<p><a href='+host+'/sendresetlink/'+encodedEmail+'>CLICK HERE TO RESET PASSWORD</a></p>' // html body
+      html: '<p><a href='+host+'/'+encodedEmail+'>CLICK HERE TO RESET PASSWORD</a></p>' // html body
   };
   console.log(mailOptions);
   // send mail
@@ -139,64 +140,78 @@ var auth = {
       console.log('Message sent: ' + info.response);
   });
 
-  	// recording time
-	var date = new Date()
-	var sentTime = date.getTime() / 1000 ;       //gives the epoch time in seconds
+    // recording time
+  var date = new Date()
+  var sentTime = date.getTime() / 1000 ;       //gives the epoch time in seconds
   console.log(sentTime);
-	// add sentTime to DB
-	collection.update({'email':''+data.email},{$set:{'stime':''+sentTime}},function(err,result){
-			if(!err && result){
-				response.send({
-					"status":"success",
-					"data":result
-				})
-			}
-			else{
-				if(!err && !result){
-					response.send({
-					"status":"failed",
-					"data":"not found"
-					})
-				}
-				else{
-					response.send({
-					"status":"failed",
-					"data":err
-					})
-				}
-			}
-	})
-	},
-
-	validatetoresetpass : function(request,response){
-    var date = new Date()
-  	var recvTime = date.getTime() / 1000 ;       // gives epoch time in seconds
-    //var endTime = recvTime.split(':')
-    console.log(recvTime)
-    validityTime = 300.000;
-		mongo = request.db;
-    collection = mongo.collection("users")
-    // base64 to ascii
-    var email = new Buffer(encodedemail,'base64').toString('ascii')
-    collection.findOne({'email':email},function(err,result){
+  // add sentTime to DB
+  collection.update({'email':''+data.email},{$set:{'stime':''+sentTime}},function(err,result){
       if(!err && result){
-        var startTime = result.stime
-        if(recvTime - startTime <= validityTime){
+        response.send({
+          "status":"Success",
+          "data":result
+        })
+      }
+      else{
+        if(!err && !result){
           response.send({
-            "status":"success",
-            "data":result
+          "status":"failed",
+          "data":"not found"
           })
         }
         else{
           response.send({
-            "status":"failed",
-            "data":"timeout"
+          "status":"failed",
+          "data":err
           })
         }
       }
+  })
+  },
+
+  resetpass : function(request,response){
+    // accepting data from frontend
+    var recvData = request.body;
+    var data = {};
+    data.email = recvData.email;
+    data.pass = recvData.pass;
+    // querying the user's salt
+    collection.findOne({ 'email' : data.email} , function(err , result){
+      console.log(result , "\n");
+      if(!err && result){
+        salt = result.salt;
+        console.log(salt);
+        }
+    });
+    // changing the hash
+    hash = sha1( data.pass + salt )
+    mongo = request.db;
+    collection = mongo.collection("users");
+    // changing the user's hash
+    collection.update({'email':''+data.email},{$set:{'hash':''+hash}},function(err,result){
+        if(!err && result){
+          response.send({
+            "status":"Success",
+            "data":result
+          })
+        }
+        else{
+          if(!err && !result){
+            response.send({
+            "status":"failed",
+            "data":"not found"
+            })
+          }
+          else{
+            response.send({
+            "status":"failed",
+            "data":err
+            })
+          }
+        }
     })
 
-	}
+  }
 };
 
 module.exports = auth;

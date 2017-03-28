@@ -7,9 +7,9 @@ var bodyParser = require('body-parser');
 var cors = require('cors');
 var sha1 = require('sha1');
 var magic = require('csprng');
-// var expressJWT = require('express-jwt');
-// var jwt = require('jsonwebtoken');
-// var secret = require('./secret');
+var expressJWT = require('express-jwt');
+var jwt = require('jsonwebtoken');
+var secret = require('./secret');
 var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var url = 'mongodb://127.0.0.1:27017/booksdb';
@@ -41,7 +41,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
-// app.use(expressJWT({secret:secret.secret}).unless({path:'/authenticate'}));
+app.use(expressJWT({secret:secret.secret}).unless({path:'/authenticate'}));
 
 //make the database object accessible to router module
 app.use(function (req, res, next) {

@@ -1,4 +1,4 @@
 //created by prabhanjansk
 module.exports = {
-    secret: "friendsNetworkAuthKey adduPrajMgTattiPrab"
+    secret: "publiclibnetppms"
 }
