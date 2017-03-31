@@ -13,7 +13,7 @@ router.post('/authenticate' , auth.authenticate);
 router.get('/books/getall' , bookDetails.getAllBooks);
 router.post('/books/addtolib' , bookDetails.addBooksToLib);
 router.post('/verifyaccount',auth.verifyAccount);
-router.post('/users/library' , bookDetails.getLibBooksById);
+router.get('/users/library' , bookDetails.getLibBooksById);
 router.get('/getuserdetails',auth.getUserDetails);
 
 module.exports = router;

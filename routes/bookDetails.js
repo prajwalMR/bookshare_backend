@@ -83,14 +83,25 @@ var bookDetails = {
 
   getLibBooksById : function(request , response){
   	id = request.query.email;
+  	console.log("EMAIL : " + id);
   	var collection = db.collection('users');
-  	collection.find({_id : id} , function(err , data){
-  		if(!err && data.bookInfo.library){
-  			myLibrary = data.bookInfo.library;
-  			response.send({
-  				"status" : "Success",
-  				"data" : myLibrary
-  			});
+  	collection.findOne({_id : id} , function(err , data){
+  		//console.log(data);
+  		if(!err && data){
+  			if(data.bookInfo != undefined || data.bookInfo.library != undefined){
+	  			myLibrary = data.bookInfo.library;
+	  			response.send({
+	  				"status" : "Success",
+	  				"data" : myLibrary
+	  			});  				
+  			}
+  			else{
+				response.send({
+	  				"status" : "Success",
+	  				"msg" : "No books in library"
+	  			});  				
+  			}
+
   		}
   		else{
   			response.send({
