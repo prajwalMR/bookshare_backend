@@ -22,98 +22,94 @@ var bookDetails = {
       });
    },
 
-    getAllBooks : function(request , response){
-    var collection = db.collection("books");
-    collection.find({}).toArray(function (err,items) {
-     if (!err && items) {
-        response.send({
-          "status" : "Success",
-          "data" : items
-        });
-     } else {
-     		response.send({
-     			"status" : "Success",
-     			"msg" : err
-     		})
-       }
-    });
-  },
+	getAllBooks : function(request , response){
+		var collection = db.collection("books");
+			collection.find({}).toArray(function (err,items) {
+			if (!err && items) {
+			   response.send({
+			     "status" : "Success",
+			     "data" : items
+			   });
+			} else {
+				response.send({
+					"status" : "Success",
+					"msg" : err
+				})
+			}
+		});
+	},
 
-  addBooksToLib : function(request , response){
-  	lib = {}
-  	usrId = request.body.email;
-  	lib.id = request.body.isbn;
-  	lib.title = request.body.title;
-  	lib.author = request.body.author;
-  	lib.gener = request.body.genre;
-  	//console.log(lib);
-  	var collection = db.collection("users");
+	addBooksToLib : function(request , response){
+		lib = {}
+		usrId = request.body.email;
+		lib.id = request.body.isbn;
+		lib.title = request.body.title;
+		lib.author = request.body.author;
+		lib.gener = request.body.genre;
+		//console.log(lib);
+		var collection = db.collection("users");
 
-  	collection.findOne({_id : usrId} , function(err , data){
-  		if(!err && data){
-  			if(!data.bookInfo){
-  				console.log(!data.booksInfo);
-  				library = [];
-  				library.push(lib);
-  				collection.update(
+		collection.findOne({_id : usrId} , function(err , data){
+			if(!err && data){
+				if(!data.bookInfo){
+					console.log(!data.booksInfo);
+					library = [];
+					library.push(lib);
+					collection.update(
 	  				{_id : usrId},
 	  				{$set : {'bookInfo.library' : library }}
 	  			);
-  			}
-  			else{
+				}
+				else{
 	  			collection.update(
 	  				{_id : usrId},
 	  				{$push : { 'bookInfo.library' : lib } }
 	  			);
-  			}
-  			response.send({
+				}
+				response.send({
 				"status" : "Success",
 				"msg" : "Book has been Succesfully added"
 			});
-  		}
-  		else{
-  			response.send({
-  				"status" : "Failed",
-  				"msg" : err
-  			});
-  		}
-  	})
+			}
+			else{
+				response.send({
+					"status" : "Failed",
+					"msg" : err
+				});
+			}
+		})
 
-  },
+	},
 
-  getLibBooksById : function(request , response){
-  	id = request.query.email;
-  	console.log("EMAIL : " + id);
-  	var collection = db.collection('users');
-  	collection.findOne({_id : id} , function(err , data){
-  		//console.log(data);
-  		if(!err && data){
-  			if(data.bookInfo != undefined || data.bookInfo.library != undefined){
+	getLibBooksById : function(request , response){
+		id = request.query.email;
+		console.log("EMAIL : " + id);
+		var collection = db.collection('users');
+		collection.findOne({_id : id} , function(err , data){
+			//console.log(data);
+			if(!err && data){
+				if(data.bookInfo != undefined || data.bookInfo.library != undefined){
 	  			myLibrary = data.bookInfo.library;
 	  			response.send({
 	  				"status" : "Success",
 	  				"data" : myLibrary
 	  			});  				
-  			}
-  			else{
+				}
+				else{
 				response.send({
 	  				"status" : "Success",
 	  				"msg" : "No books in library"
 	  			});  				
-  			}
-
-  		}
-  		else{
-  			response.send({
-  				"status" : "Failed",
-  				"msg" : err
-  			});
-  		}
-  	})
-  }
-
-
-
+				}
+			}
+			else{
+				response.send({
+					"status" : "Failed",
+					"msg" : err
+				});
+			}
+		});
+	}
 };
 
 module.exports = bookDetails;
