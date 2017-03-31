@@ -11,7 +11,6 @@ router.post('/resetpsswd',auth.resetpass);
 router.post('/authenticate' , auth.authenticate);
 router.get('/books/getall' , bookDetails.getAllBooks);
 router.post('/books/addtolib' , bookDetails.addBooksToLib);
-router.get('/users/library' , bookDetails.getLibBooksById);
 router.post('/verifyaccount',auth.verifyAccount);
 
 module.exports = router;
