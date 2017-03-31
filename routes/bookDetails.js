@@ -79,13 +79,13 @@ var bookDetails = {
   		}
   	})
 
-  }
+  },
 
   getLibBooksById : function(request , response){
   	id = request.query.email;
   	var collection = db.collection('users');
   	collection.find({_id : id} , function(err , data){
-  		if(!err && data){
+  		if(!err && data.bookInfo.library){
   			myLibrary = data.bookInfo.library;
   			response.send({
   				"status" : "Success",
