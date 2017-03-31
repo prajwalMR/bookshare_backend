@@ -3,14 +3,13 @@ var jwt = require('jsonwebtoken');
 var sha1 = require('sha1');
 var magic = require('csprng');
 var secret = require('../secret');
-var nodemailer = require('nodemailer')
-var smtpTransport = require('nodemailer-smtp-transport');
-var host = 'http://localhost:8000/app/#/resetpsswd';
+var mailer = require('./mailer');
+var host = 'http://localhost:8000/#/';
 
 
 var auth = {
   authenticate: function (req,res) {
-    
+
     usrname = new Buffer(req.body.userName , 'base64').toString('ascii') ;
     passwd = new Buffer(req.body.password , 'base64').toString('ascii');
 
@@ -39,6 +38,7 @@ var auth = {
     salt = magic(160, 36);
     hash = sha1( req.pass + salt );
     isStudent = req.category.isStudent;
+    isVerified = false;
     category = {};
     if(isStudent){
       category.college = req.category.college;
@@ -55,6 +55,7 @@ var auth = {
       phoneNum : req.phoneNum,
       place : req.place,
       isStudent : req.category.isStudent,
+      isVerified: false,
       category : category,
       interests : req.interests,
       salt : salt,
@@ -62,9 +63,15 @@ var auth = {
     // callback function that fiers after the batabase operations are completed
     } , function(err){
       if(!err){
+        var encph = new Buffer(req.phoneNum).toString('base64');
+        text = "CLICK HERE TO VERIFY YOUR MAIL ID";
+        link = host + 'verifyaccount/'+encph;
+        subject = 'VERIFY E-MAIL ID';
+        mailer.mail(req.email,text,link,subject);
         response.send({
           "status" : "Success"
-        })
+        });
+
       }
       else{
         response.send({ 
@@ -118,60 +125,38 @@ var auth = {
     data.email = recvData.email;
     console.log(data.email);
     // details of the mailer
-    var transporter = nodemailer.createTransport({
-    service: 'Gmail',
-          auth: {
-              user: 'linhacks007@gmail.com', // Your email id
-              pass: 'ubuntu900' // Your password
-          }
-    })
-    // base64 encoding of user email
-    var encodedEmail = new Buffer(data.email).toString('base64')
-    // setup e-mail data with unicode symbols
-    var mailOptions = {
-        from: '"Linux Hacker" <linhacks007@gmail.com>', // sender address
-        to: ''+ data.email, // list of receivers
-        subject: 'CHANGE PASSWORD', // Subject line
-        text: 'Hello', // plaintext body
-        // add url here along with encode email
-        html: '<p><a href='+host+'/'+encodedEmail+'>CLICK HERE TO RESET PASSWORD</a></p>' // html body
-    };
-    console.log(mailOptions);
-    // send mail
-    transporter.sendMail(mailOptions, function(error, info){
-        if(error){
-            return console.error(error);
-        }
-        console.log('Message sent: ' + info.response);
-    });
+    text = "CLICK HERE TO RESET PASSWORD";
+    link = host + 'resetpsswd';
+    subject = 'CHANGE PASSWORD';
+    mailer.mail(data.email,text,link,subject);
 
-      // recording time
-    var date = new Date()
-    var sentTime = date.getTime() / 1000 ;       //gives the epoch time in seconds
-    console.log(sentTime);
-    // add sentTime to DB
-    collection.update({'email':''+data.email},{$set:{'stime':''+sentTime}},function(err,result){
-        if(!err && result){
+    // recording time
+  var date = new Date()
+  var sentTime = date.getTime() / 1000 ;       //gives the epoch time in seconds
+  console.log(sentTime);
+  // add sentTime to DB
+  collection.update({'email':''+data.email},{$set:{'stime':''+sentTime}},function(err,result){
+      if(!err && result){
+        response.send({
+          "status":"Success",
+          "data":result
+        })
+      }
+      else{
+        if(!err && !result){
           response.send({
-            "status":"Success",
-            "data":result
+          "status":"failed",
+          "data":"not found"
           })
         }
         else{
-          if(!err && !result){
-            response.send({
-            "status":"failed",
-            "data":"not found"
-            })
-          }
-          else{
-            response.send({
-            "status":"failed",
-            "data":err
-            })
-          }
+          response.send({
+          "status":"failed",
+          "data":err
+          })
         }
-    })
+      }
+  })
   },
 
   resetpass : function(request,response){
@@ -216,6 +201,40 @@ var auth = {
         }
     })
 
+  },
+  verifyAccount : function(request,response){
+    recvData = request.body;
+    collection.findOne({ 'phoneNum' : recvData.phoneNum} , function(err , result){
+      console.log(result , "\n");
+      if(!err && result){
+        isVerified = true;
+        console.log(isVerified);
+      }
+
+      collection.update({'phoneNum': recvData.phoneNum},{$set:{'isVerified':true}},function(err,result){
+          if(!err && result){
+            response.send({
+              "status":"Success",
+              "data":result
+            })
+          }
+          else{
+            if(!err && !result){
+              response.send({
+              "status":"failed",
+              "data":"not found"
+              })
+            }
+            else{
+              response.send({
+              "status":"failed",
+              "data":err
+              })
+            }
+          }
+      })
+
+    });
   }
 
 };
