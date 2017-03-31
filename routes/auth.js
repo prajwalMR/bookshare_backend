@@ -124,9 +124,10 @@ var auth = {
     var data = {};
     data.email = recvData.email;
     console.log(data.email);
+    var encmail = new Buffer(data.email).toString('base64');
     // details of the mailer
     text = "CLICK HERE TO RESET PASSWORD";
-    link = host + 'resetpsswd';
+    link = host + 'resetpsswd'+'/'+encmail;
     subject = 'CHANGE PASSWORD';
     mailer.mail(data.email,text,link,subject);
 
@@ -203,6 +204,8 @@ var auth = {
 
   },
   verifyAccount : function(request,response){
+    mongo = request.db;
+    collection = mongo.collection("users");
     recvData = request.body;
     collection.findOne({ 'phoneNum' : recvData.phoneNum} , function(err , result){
       console.log(result , "\n");
@@ -235,6 +238,90 @@ var auth = {
       })
 
     });
+  },
+  getUserDetails: function(request,response){
+    mongo = request.db;
+    collection = mongo.collection("users");
+    recvData = request.query;
+    console.log(recvData.phoneNum);
+    collection.findOne({'phoneNum':recvData.phoneNum},function(err,result){
+      if(!err && result){
+        response.send({
+          "status":"Success",
+          "data":result
+        })
+      }
+      else{
+        response.send({
+          "status":"Failed",
+          "data":err
+        })
+      }
+    });
+  },
+  UpdateDetails: function(request,response){
+    mongo = request.db;
+    collection = mongo.collection('users');
+    recvData = request.body;
+    console.log(recvData);
+
+    if(recvData.category){
+      if (recvData.category.isStudent){
+        var newCategory = {
+          'college':recvData.category.college,
+          'branch':recvData.category.branch,
+          'sem':recvData.category.sem
+        };
+      } else {
+        var newCategory = {
+          'job':recvData.category.job
+        };
+      }
+      var setValues = {
+        'name' : recvData.name ,
+        'phoneNum' : recvData.phoneNum ,
+        'email' : recvData.email,
+        'place' : recvData.place ,
+        'isStudent' : recvData.category.isStudent,
+        'interests' : recvData.interests,
+        'category' : newCategory
+      }
+      console.log(" cat");
+
+    }
+    else {
+      console.log("no cat");
+      var setValues = {
+        'name' : recvData.name ,
+        'phoneNum' : recvData.phoneNum ,
+        'email' : recvData.email,
+        'place' : recvData.place,
+        'interests' : recvData.interests
+      };
+    }
+    console.log(setValues);
+    collection.update({'_id': recvData.email},{ $set: setValues },function(err,result){
+        if(!err && result){
+          response.send({
+            "status":"Success",
+            "data":result
+          })
+        }
+        else{
+          if(!err && !result){
+            response.send({
+            "status":"failed",
+            "data":"not found"
+            })
+          }
+          else{
+            response.send({
+            "status":"failed",
+            "data":err
+            })
+          }
+        }
+    })
   }
 
 };
