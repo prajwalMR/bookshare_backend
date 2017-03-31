@@ -74,7 +74,7 @@ var auth = {
 
       }
       else{
-        response.send({
+        response.send({ 
           "status" : err
         })
       }
@@ -236,6 +236,7 @@ var auth = {
 
     });
   }
+
 };
 
 module.exports = auth;
