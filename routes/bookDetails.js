@@ -81,9 +81,25 @@ var bookDetails = {
 
   }
 
-  // getLibBooksById : function(request , response){
-
-  // }
+  getLibBooksById : function(request , response){
+  	id = request.query.email;
+  	var collection = db.collection('users');
+  	collection.find({_id : id} , function(err , data){
+  		if(!err && data){
+  			myLibrary = data.bookInfo.library;
+  			response.send({
+  				"status" : "Success",
+  				"data" : myLibrary
+  			});
+  		}
+  		else{
+  			response.send({
+  				"status" : "Failed",
+  				"msg" : err
+  			});
+  		}
+  	})
+  }
 
 
 
