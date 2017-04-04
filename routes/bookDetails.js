@@ -1,6 +1,6 @@
 var bookDetails = {
 	authenticate: function (req,res) {
-    
+
     	usrname = new Buffer(req.body.userName , 'base64').toString('ascii') ;
     	passwd = new Buffer(req.body.password , 'base64').toString('ascii');
 
@@ -66,9 +66,12 @@ var bookDetails = {
 	  				{$push : { 'bookInfo.library' : lib } }
 	  			);
 				}
+				data.bookInfo.library.push(lib);
+				//console.log(data.bookInfo.library);
 				response.send({
 				"status" : "Success",
-				"msg" : "Book has been Succesfully added"
+				"msg" : "Book has been Succesfully added",
+				"data": data.bookInfo.library
 			});
 			}
 			else{
@@ -94,14 +97,14 @@ var bookDetails = {
 			  			response.send({
 			  				"status" : "Success",
 			  				"data" : myLibrary
-			  			});  
-	  				}				
+			  			});
+	  				}
 				}
 				else{
 					response.send({
 		  				"status" : "Success",
 		  				"msg" : "No books in library"
-		  			});  				
+		  			});
 				}
 			}
 			else{
