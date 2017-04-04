@@ -15,5 +15,6 @@ router.post('/books/addtolib' , bookDetails.addBooksToLib);
 router.post('/verifyaccount',auth.verifyAccount);
 router.get('/users/library' , bookDetails.getLibBooksById);
 router.get('/getuserdetails',auth.getUserDetails);
+router.post('/users/library/delete',bookDetails.delLibBooksById);
 
 module.exports = router;
