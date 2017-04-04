@@ -45,7 +45,7 @@ var bookDetails = {
 		lib.id = request.body.isbn;
 		lib.title = request.body.title;
 		lib.author = request.body.author;
-		lib.gener = request.body.genre;
+		lib.genre = request.body.genre;
 		//console.log(lib);
 		var collection = db.collection("users");
 
@@ -88,18 +88,20 @@ var bookDetails = {
 		collection.findOne({_id : id} , function(err , data){
 			//console.log(data);
 			if(!err && data){
-				if(data.bookInfo != undefined || data.bookInfo.library != undefined){
-	  			myLibrary = data.bookInfo.library;
-	  			response.send({
-	  				"status" : "Success",
-	  				"data" : myLibrary
-	  			});  				
+				if(data.bookInfo != undefined ){
+					if(data.bookInfo.library != undefined){
+			  			myLibrary = data.bookInfo.library;
+			  			response.send({
+			  				"status" : "Success",
+			  				"data" : myLibrary
+			  			});  
+	  				}				
 				}
 				else{
-				response.send({
-	  				"status" : "Success",
-	  				"msg" : "No books in library"
-	  			});  				
+					response.send({
+		  				"status" : "Success",
+		  				"msg" : "No books in library"
+		  			});  				
 				}
 			}
 			else{
