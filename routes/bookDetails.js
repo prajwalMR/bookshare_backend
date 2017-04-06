@@ -46,75 +46,153 @@ var bookDetails = {
 		lib.title = request.body.title;
 		lib.author = request.body.author;
 		lib.genre = request.body.genre;
+		lib.inLib = true;
+		lib.inSellBox = false;
+		lib.inRentBox = false;
 		//console.log(lib);
 		var collection = db.collection("users");
 
 		collection.findOne({_id : usrId} , function(err , data){
 			if(!err && data){
-				if(!data.bookInfo){
-					console.log(!data.booksInfo);
-					library = [];
-					library.push(lib);
-					collection.update(
-	  				{_id : usrId},
-	  				{$set : {'bookInfo.library' : library }}
-	  			);
-				}
-				else{
 	  			collection.update(
 	  				{_id : usrId},
-	  				{$push : { 'bookInfo.library' : lib } }
+	  				{$push : { 'bookInfo' : lib } }
 	  			);
-				}
-				data.bookInfo.library.push(lib);
-				//console.log(data.bookInfo.library);
 				response.send({
-				"status" : "Success",
-				"msg" : "Book has been Succesfully added",
-				"data": data.bookInfo.library
-			});
+				'status' : 'Success',
+				'msg' : 'Book has been Succesfully added',
+				});
 			}
 			else{
 				response.send({
-					"status" : "Failed",
-					"msg" : err
+					'status' : 'Failed',
+					'msg' : err
 				});
 			}
-		})
+		});
 
 	},
 
 	getLibBooksById : function(request , response){
 		id = request.query.email;
-		console.log("EMAIL : " + id);
+
+		var collection = db.collection("users");
+
+
+		collection.aggregate(
+				
+					{ $match : {_id : id}},
+					{$unwind : "$bookInfo"},
+					{ $match : {"bookInfo.inLib" : true}}
+				
+			 , function(error , data){
+
+			 	if(!error && data){
+			 		console.log("SUCCESS")
+			 		response.send({
+			 			'status' : 'Success',
+			 			'data' : data
+			 		});
+			 	}
+		});
+		
+	},
+
+	getSellBooksById : function(request , response){
+		id = request.query.email;
+
+		var collection = db.collection("users");
+
+
+		collection.aggregate(
+				
+					{ $match : {_id : id}},
+					{$unwind : "$bookInfo"},
+					{ $match : {"bookInfo.inSellBox" : true}}
+				
+			 , function(error , data){
+
+			 	if(!error && data){
+			 		console.log("SUCCESS")
+			 		response.send({
+			 			'status' : 'Success',
+			 			'data' : data
+			 		});
+			 	}
+		});
+		
+	},
+
+
+		
+	sellBook : function(request , response){
+		//console.log(request.body);
+		email = request.body.email;
+		bookISBN = request.body.isbn;
+		bookTitle = request.body.title;
+		var bookToSell;
 		var collection = db.collection('users');
-		collection.findOne({_id : id} , function(err , data){
-			//console.log(data);
+
+		collection.update({_id:email,"bookInfo.id":bookISBN},{$set:{"bookInfo.$.inLib":false,"bookInfo.$.inSellBox":true}},function(err,data){
 			if(!err && data){
-				if(data.bookInfo != undefined ){
-					if(data.bookInfo.library != undefined){
-			  			myLibrary = data.bookInfo.library;
-			  			response.send({
-			  				"status" : "Success",
-			  				"data" : myLibrary
-			  			});
-	  				}
-				}
-				else{
-					response.send({
-		  				"status" : "Success",
-		  				"msg" : "No books in library"
-		  			});
-				}
+				response.send({
+					"status":"Success",
+					"data": data
+				});
 			}
 			else{
 				response.send({
-					"status" : "Failed",
-					"msg" : err
+					"status":"error",
+					"msg": err
 				});
 			}
 		});
-	}
-};
+	},
 
+	rentBook : function(request , response){
+		//console.log(request.body);
+		email = request.body.email;
+		bookISBN = request.body.isbn;
+		bookTitle = request.body.title;
+		var bookToSell;
+		var collection = db.collection('users');
+
+		collection.update({_id:email,"bookInfo.id":bookISBN},{$set:{"bookInfo.$.inLib":false,"bookInfo.$.inRentBox":true}},function(err,data){
+			if(!err && data){
+				response.send({
+					"status":"Success",
+					"data": data
+				});
+			}
+			else{
+				response.send({
+					"status":"error",
+					"msg": err
+				});
+			}
+		});
+	},
+
+	deleteBooks : function(request , response){
+	   var recvData = request.body;
+	   var email = recvData.email;
+	   var list = recvData.books;
+	   console.log(list);
+	   var collection = db.collection('users');
+
+	 collection.update({_id:email},{$pull:{"bookInfo":{id:{$in:list}}}},{multi:true},function(err,data){
+	   if(!err){
+	     response.send({
+	       "status":"Success"
+	     });
+	   }
+	   else{
+	     response.send({
+	       "status":"Failed"
+	     });
+	   }
+	 });
+ }
+
+};
 module.exports = bookDetails;
