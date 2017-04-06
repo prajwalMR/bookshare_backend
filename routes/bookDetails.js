@@ -122,7 +122,30 @@ var bookDetails = {
 		});
 		
 	},
+	getRentBooksById : function(request , response){
+		id = request.query.email;
 
+		var collection = db.collection("users");
+
+
+		collection.aggregate(
+				
+					{ $match : {_id : id}},
+					{$unwind : "$bookInfo"},
+					{ $match : {"bookInfo.inRentBox" : true}}
+				
+			 , function(error , data){
+
+			 	if(!error && data){
+			 		console.log("SUCCESS")
+			 		response.send({
+			 			'status' : 'Success',
+			 			'data' : data
+			 		});
+			 	}
+		});
+		
+	},
 
 		
 	sellBook : function(request , response){
