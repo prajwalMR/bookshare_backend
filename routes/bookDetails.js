@@ -22,22 +22,22 @@ var bookDetails = {
       });
    },
 
-	getAllBooks : function(request , response){
-		var collection = db.collection("books");
-			collection.find({}).toArray(function (err,items) {
-			if (!err && items) {
-			   response.send({
-			     "status" : "Success",
-			     "data" : items
-			   });
-			} else {
-				response.send({
-					"status" : "Success",
-					"msg" : err
-				})
-			}
-		});
-	},
+	// getAllBooks : function(request , response){
+	// 	var collection = db.collection("books");
+	// 		collection.find({}).toArray(function (err,items) {
+	// 		if (!err && items) {
+	// 		   response.send({
+	// 		     "status" : "Success",
+	// 		     "data" : items
+	// 		   });
+	// 		} else {
+	// 			response.send({
+	// 				"status" : "Success",
+	// 				"msg" : err
+	// 			})
+	// 		}
+	// 	});
+	// },
 
 	addBooksToLib : function(request , response){
 		lib = {}
@@ -80,11 +80,11 @@ var bookDetails = {
 
 
 		collection.aggregate(
-				
+
 					{ $match : {_id : id}},
 					{$unwind : "$bookInfo"},
 					{ $match : {"bookInfo.inLib" : true}}
-				
+
 			 , function(error , data){
 
 			 	if(!error && data){
@@ -95,7 +95,7 @@ var bookDetails = {
 			 		});
 			 	}
 		});
-		
+
 	},
 
 	getSellBooksById : function(request , response){
@@ -105,11 +105,11 @@ var bookDetails = {
 
 
 		collection.aggregate(
-				
+
 					{ $match : {_id : id}},
 					{$unwind : "$bookInfo"},
 					{ $match : {"bookInfo.inSellBox" : true}}
-				
+
 			 , function(error , data){
 
 			 	if(!error && data){
@@ -120,7 +120,7 @@ var bookDetails = {
 			 		});
 			 	}
 		});
-		
+
 	},
 	getRentBooksById : function(request , response){
 		id = request.query.email;
@@ -129,11 +129,11 @@ var bookDetails = {
 
 
 		collection.aggregate(
-				
+
 					{ $match : {_id : id}},
 					{$unwind : "$bookInfo"},
 					{ $match : {"bookInfo.inRentBox" : true}}
-				
+
 			 , function(error , data){
 
 			 	if(!error && data){
@@ -144,30 +144,80 @@ var bookDetails = {
 			 		});
 			 	}
 		});
-		
+
 	},
 
-		
+
 	sellBook : function(request , response){
 		//console.log(request.body);
 		email = request.body.email;
-		bookISBN = request.body.isbn;
-		bookTitle = request.body.title;
+    book = request.body.book;
+		bookISBN = book.id;
+    bookTitle = book.title;
+
+    console.log(book);
+    var addedBy = [];
 		var bookToSell;
 		var collection = db.collection('users');
+    var bookCollection = db.collection('books');
 
 		collection.update({_id:email,"bookInfo.id":bookISBN},{$set:{"bookInfo.$.inLib":false,"bookInfo.$.inSellBox":true}},function(err,data){
 			if(!err && data){
-				response.send({
-					"status":"Success",
-					"data": data
-				});
-			}
+        bookCollection.findOne({$and:[{_id:bookISBN},{status:"sell"}]},function(error , data1){
+          console.log(data1);
+          if(!error && !data1){
+            addedBy.push(email);
+            bookCollection.insert({"_id":bookISBN,"title":bookTitle,"author":book.author,"genre":book.genre,"status":"sell","addedBy":addedBy},function(err1){
+              if(!err1){
+                console.log("----------INSERTED---------");
+                // console.log(request);
+                response.send({
+        					"status":"Success"
+        				});
+              }
+              else{
+                response.send({
+        					"status":"error",
+        					"msg": err1
+        				});
+              }
+            });
+          }
+          else {
+            if(!error && data1){
+              addedBy = data1.addedBy;
+              addedBy[addedBy.length] = email;
+              console.log("-------------------DATA FOUND-----------");
+              bookCollection.update({_id:bookISBN},{$set:{"addedBy":addedBy}},function(err2 , data2){
+                if(!err2 && data2){
+                  response.send({
+          					"status":"Success"
+          				});
+                }
+                else{
+                  response.send({
+          					"status":"error",
+          					"msg": err2
+          				});
+                }
+              });
+
+            }
+            else{
+              response.send({
+                "status":"error",
+                "msg": error
+              });
+            }
+          }
+
+        })
+      }
 			else{
-				response.send({
-					"status":"error",
-					"msg": err
-				});
+        response.send({
+          "status":"error",
+          "msg": err
+        });
 			}
 		});
 	},
@@ -175,26 +225,78 @@ var bookDetails = {
 	rentBook : function(request , response){
 		//console.log(request.body);
 		email = request.body.email;
-		bookISBN = request.body.isbn;
-		bookTitle = request.body.title;
+    book = request.body.book;
+		bookISBN = book.id;
+		bookTitle = book.title;
 		var bookToSell;
+    var addedBy = [];
 		var collection = db.collection('users');
+    var bookCollection = db.collection('books');
 
 		collection.update({_id:email,"bookInfo.id":bookISBN},{$set:{"bookInfo.$.inLib":false,"bookInfo.$.inRentBox":true}},function(err,data){
 			if(!err && data){
-				response.send({
-					"status":"Success",
-					"data": data
-				});
-			}
+				// response.send({
+				// 	"status":"Success",
+				// 	"data": data
+				// });
+
+        bookCollection.findOne({$and : [{"_id":bookISBN},{"status":"rent"}]},function(error , data1){
+          console.log(data1);
+          if(!error && !data1){
+            addedBy.push(email);
+            bookCollection.insert({"_id":bookISBN,"title":bookTitle,"author":book.author,"genre":book.genre,"status":"rent","addedBy":addedBy},function(err1){
+              if(!err1){
+                console.log("----------INSERTED---------");
+                // console.log(request);
+                response.send({
+        					"status":"Success"
+        				});
+              }
+              else{
+                response.send({
+        					"status":"error",
+        					"msg": err1
+        				});
+              }
+            });
+      }
 			else{
-				response.send({
-					"status":"error",
-					"msg": err
-				});
+        if(!error && data1){
+          addedBy = data1.addedBy;
+          addedBy[addedBy.length] = email;
+          console.log("-------------------DATA FOUND-----------");
+          bookCollection.update({_id:bookISBN},{$set:{"addedBy":addedBy}},function(err2 , data2){
+            if(!err2 && data2){
+              response.send({
+                "status":"Success"
+              });
+            }
+            else{
+              response.send({
+                "status":"error",
+                "msg": err2
+              });
+            }
+          });
+
+        }
+        else{
+          response.send({
+            "status":"error",
+            "msg": error
+          });
+        }
 			}
 		});
-	},
+	 }
+   else{
+     response.send({
+       "status":"error",
+       "msg": err
+     });
+   }
+  });
+},
 
 	deleteBooks : function(request , response){
 	   var recvData = request.body;
@@ -215,6 +317,23 @@ var bookDetails = {
 	     });
 	   }
 	 });
+ },
+
+ getAllBooks : function(request,response){
+  var collection = db.collection("books");
+  collection.find({}).toArray(function(err,data){
+    if(!err && data){
+      response.send({
+        "status" : "Success",
+        "data" : data
+      });
+    }
+    else{
+      response.send({
+        "status" : "Failed"
+      });
+    }
+  });
  }
 
 };
