@@ -10,7 +10,6 @@ router.post('/users/update',auth.UpdateDetails);
 router.post('/sendresetlink',auth.sendmail);
 router.post('/resetpsswd',auth.resetpass);
 router.post('/authenticate' , auth.authenticate);
-router.get('/books/getall' , bookDetails.getAllBooks);
 router.post('/books/addtolib' , bookDetails.addBooksToLib);
 router.post('/verifyaccount',auth.verifyAccount);
 router.get('/users/library' , bookDetails.getLibBooksById);
@@ -20,5 +19,6 @@ router.get('/getuserdetails',auth.getUserDetails);
 router.post('/users/books/sell' , bookDetails.sellBook);
 router.post('/users/books/rent' , bookDetails.rentBook);
 router.post('/users/library/delete' , bookDetails.deleteBooks);
+router.get('/books/all',bookDetails.getAllBooks);
 
 module.exports = router;
