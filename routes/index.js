@@ -20,5 +20,6 @@ router.post('/users/books/sell' , bookDetails.sellBook);
 router.post('/users/books/rent' , bookDetails.rentBook);
 router.post('/users/library/delete' , bookDetails.deleteBooks);
 router.get('/books/all',bookDetails.getAllBooks);
+router.post('/users/recommendedbooks' , bookDetails.recommendedBooksToBuy);
 
 module.exports = router;

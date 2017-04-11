@@ -337,7 +337,44 @@ var bookDetails = {
       });
     }
   });
- }
+ },
+
+  recommendedBooksToBuy : function(request , response){
+ 	//email = request.body.email;
+ 	interests = request.body.interests;
+ 	console.log(interests[0]);
+ 	//usersCollection = db.collection('users');
+ 	booksCollection = db.collection('books');
+
+ 	booksCollection.find({'genre' : {$in : interests }} , function(error , cursor){
+ 		if(!error && cursor){
+ 			cursor.toArray(function(err , data){
+ 				if(!err && data){
+ 					console.log("DATA : ");
+ 					console.log(data);
+ 					response.send({
+ 						"status" : "Success",
+ 						"data" : data
+ 					});
+ 				}
+ 				else{
+ 					console.log(err);
+ 					response.send({
+ 						"status" : "Failed",
+ 						"msg" : err
+ 					});
+ 				}
+ 			})
+ 		}
+ 		else{
+ 			console.log(error);
+ 			response.send({
+ 				"status" : "Failed",
+ 				"msg" : error
+ 			});
+ 		}
+ 	});
+ },
 
 };
 module.exports = bookDetails;
