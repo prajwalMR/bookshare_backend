@@ -298,7 +298,7 @@ var bookDetails = {
        });
      }
     });
-},
+  },
 
   deleteBooks : function(request , response){
      var recvData = request.body;
@@ -319,9 +319,9 @@ var bookDetails = {
        });
      }
    });
- },
+  },
 
- getAllBooks : function(request,response){
+  getAllBooks : function(request,response){
   var collection = db.collection("books");
   collection.find({}).toArray(function(err,data){
     if(!err && data){
@@ -337,44 +337,90 @@ var bookDetails = {
       });
     }
   });
- },
+  },
 
   recommendedBooksToBuy : function(request , response){
- 	//email = request.body.email;
- 	interests = request.body.interests;
- 	console.log(interests[0]);
- 	//usersCollection = db.collection('users');
- 	booksCollection = db.collection('books');
+  	//email = request.body.email;
+  	interests = request.body.interests;
+  	console.log(interests[0]);
+  	//usersCollection = db.collection('users');
+  	booksCollection = db.collection('books');
 
- 	booksCollection.find({'genre' : {$in : interests }} , function(error , cursor){
- 		if(!error && cursor){
- 			cursor.toArray(function(err , data){
- 				if(!err && data){
- 					console.log("DATA : ");
- 					console.log(data);
- 					response.send({
- 						"status" : "Success",
- 						"data" : data
- 					});
- 				}
- 				else{
- 					console.log(err);
- 					response.send({
- 						"status" : "Failed",
- 						"msg" : err
- 					});
- 				}
- 			})
- 		}
- 		else{
- 			console.log(error);
- 			response.send({
- 				"status" : "Failed",
- 				"msg" : error
- 			});
- 		}
- 	});
- },
+  	booksCollection.find({'genre' : {$in : interests }} , function(error , cursor){
+  		if(!error && cursor){
+  			cursor.toArray(function(err , data){
+  				if(!err && data){
+  					console.log("DATA : ");
+  					console.log(data);
+  					response.send({
+  						"status" : "Success",
+  						"data" : data
+  					});
+  				}
+  				else{
+  					console.log(err);
+  					response.send({
+  						"status" : "Failed",
+  						"msg" : err
+  					});
+  				}
+  			})
+  		}
+  		else{
+  			console.log(error);
+  			response.send({
+  				"status" : "Failed",
+  				"msg" : error
+  			});
+  		}
+  	});
+  },
+
+  requestBook : function(request , response){
+    title = request.body.title;
+    author = request.body.author;
+    genre = request.body.genre;
+    id = request.body.email;
+
+    collection = db.collection('bookrequests');
+
+    collection.insert({"_id":id+"-"+title , "title" : title , "author" : author , "genre" : genre} , function(err){
+      if(!err){
+        response.send({
+          'status' : 'Success',
+          'msg' : 'book requested'
+        })
+      }
+      else{
+        response.send({
+          'status' : 'Failed',
+          'msg' : 'Failed to request book'
+        })
+      }
+    })
+  },
+
+  getBookRequests : function(request , response){
+    collection = db.collection('bookrequests');
+    collection.find({} , function(error , cursor){
+      if(!error && cursor){
+        cursor.toArray(function(err , data){
+          if(!err && data){
+            response.send({
+              'status' : 'Success',
+              'data' : data
+            });
+          }
+          else{
+            response.send({
+              'status' : 'Failed',
+              'msg' : 'Failed to fetch book requests'
+            });
+          }
+        })
+      }
+    });
+  }
 
 };
 module.exports = bookDetails;
