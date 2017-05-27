@@ -23,5 +23,6 @@ router.get('/books/all',bookDetails.getAllBooks);
 router.post('/users/recommendedbooks' , bookDetails.recommendedBooksToBuy);
 router.post('/users/books/request' , bookDetails.requestBook);
 router.get('/users/books/getrequests' , bookDetails.getBookRequests);
+router.post('/books/getByCategory', bookDetails.getByCategory);
 
 module.exports = router;
