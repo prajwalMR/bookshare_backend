@@ -420,7 +420,41 @@ var bookDetails = {
         })
       }
     });
-  }
+  },
+
+  getByCategory : function(request,response){
+   category = request.body;
+   console.log(category);
+
+  booksCollection = db.collection('books');
+  booksCollection.find({'genre' : {$in : category}} , function(err,cursor){
+    if(!err && cursor){
+      cursor.toArray(function(err1,data){
+        if(!err1 && data){
+          console.log("DATA:",data);
+          response.send({
+            "status" : "Success",
+            "data": data
+          });
+        }
+        else{
+          console.log(err1);
+          response.send({
+            "status" : "Failed",
+            "msg" : err1
+          });
+        }
+      });
+    }
+    else{
+      console.log(err);
+      response.send({
+        "status" : "Failed",
+        "msg" : err1
+      });
+    }
+  });
+ }
 
 };
 module.exports = bookDetails;
